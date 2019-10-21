@@ -3,7 +3,6 @@ gradlew.bat
 *.bat
 /.idea/*
 *.xml
-*.gradle
 *.jar
 *.war
 *.nar
