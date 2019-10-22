@@ -6,11 +6,11 @@ public class ScapegoatTree<T extends Comparable> {
     private TreeNode<T> root;
     private double alpha; //balance coefficient
     private int size;
-    private int maxSize;
+    private int maxSize; //TODO rename
 
 
     //constructor and getter for root
-    public ScapegoatTree(T value, double alpha) {
+    public ScapegoatTree(T value, double alpha) { //TODO element removal
         if (alpha >= 0.5 && alpha < 1) this.alpha = alpha;
         else throw new IllegalArgumentException("alpha should be in [0.5 ; 1) range. Current alpha: " + alpha);
         this.root = new TreeNode<>(value);
@@ -41,7 +41,9 @@ public class ScapegoatTree<T extends Comparable> {
     public int size() { return root.getWeight(); }
 
     //getting the subtree as the sorted ArrayList<T>
-    public void getSubtreeAsList(boolean includeCurr, TreeNode<T> node, ArrayList<T> result) {
+
+    //TODO transfer to node class, ArrayList name, public method
+    void getSubtreeAsList(boolean includeCurr, TreeNode<T> node, ArrayList<T> result) {
         //smaller values
         if (node.getLeftChild() != null) getSubtreeAsList(true, node.getLeftChild(), result);
         //this value
@@ -75,7 +77,7 @@ public class ScapegoatTree<T extends Comparable> {
             recursiveIns(values, (medianInd + 1), end, newNode);
         }
     }
-
+    //TODO stack -> deque
     private void findPath(TreeNode<T> node, TreeNode<T> currNode, Stack<TreeNode<T>> path) {
         if (currNode == null) throw new NoSuchElementException("no node for " + node.getValue().toString());
         int compareVal = node.getValue().compareTo(currNode.getValue());

@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class testing {
+public class testing { //TODO split tests
     @Test
     public void testingTreeNode() {
         TreeNode<Integer> node1 = new TreeNode<>(2);
