@@ -1,3 +1,5 @@
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class TreeNode<T extends Comparable> {
@@ -40,4 +42,99 @@ public class TreeNode<T extends Comparable> {
         return leftWeight + 1 + rightWeight;
     }
 
+    TreeNode<T> search(T searchValue) {
+        int compareVal = searchValue.compareTo(this.value);
+        //System.out.println("current search position is " + currNode.getValue());
+        if (compareVal == 0) return this;
+        else if (compareVal < 0) {
+            if (this.getLeftChild() == null) return null;
+            //System.out.println("searching at the left of " + currNode.getValue());
+            return this.getLeftChild().search(searchValue);
+        }
+        else {
+            if ((this.getRightChild() == null)) return null;
+            //System.out.println("searching at the right of " + currNode.getValue());
+            return this.getRightChild().search(searchValue);
+        }
+    }
+
+    void getSubtreeAsList(boolean includeCurr, ArrayList<T> result) {
+        //smaller values
+        if (leftChild != null) leftChild.getSubtreeAsList(true, result);
+        //this value
+        if (includeCurr) result.add(value);
+        //greater values
+        if (rightChild != null) rightChild.getSubtreeAsList(true, result);
+    }
+
+    void findPath(TreeNode<T> node, ArrayDeque<TreeNode<T>> path) {
+        int compareVal = node.getValue().compareTo(value);
+
+        if (compareVal < 0 && leftChild != null) {
+            path.push(this);
+            leftChild.findPath(node, path);
+        }
+        else if (compareVal > 0 && rightChild != null) {
+            path.push(this);
+            rightChild.findPath(node, path);
+        }
+    }
+
+    void addAsChild(TreeNode<T> newNode) {
+        if (newNode.getValue().compareTo(value) < 0) {
+            if (leftChild == null) {
+                leftChild = newNode;
+                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
+            }
+            else leftChild.addAsChild(newNode);
+        }
+        else {
+            if (rightChild == null) {
+                rightChild = newNode;
+                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
+            }
+            else rightChild.addAsChild(newNode);
+        }
+    }
+
+    void addAsChild(TreeNode<T> newNode, ArrayDeque<TreeNode<T>> currPath) {
+
+        if (newNode.getValue().compareTo(value) < 0) {
+            currPath.push(this);
+            if (leftChild == null) leftChild = newNode;
+                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
+            else leftChild.addAsChild(newNode, currPath);
+        }
+        else {
+            currPath.push(this);
+            if (rightChild == null) rightChild = newNode;
+                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
+            else rightChild.addAsChild(newNode, currPath);
+        }
+    }
+
+    void recursiveIns(ArrayList<T> values, int start, int end) {
+        if (start < 0 || end > values.size() - 1 || start > end) return;
+        if (start == end) {
+            int compareVal = values.get(start).compareTo(value);
+            TreeNode<T> newNode = new TreeNode<>(values.get(start));
+            if (compareVal <= 0) leftChild = newNode;
+            else rightChild = newNode;
+        }
+        else {
+            int medianInd = (start + end)/2;
+            TreeNode<T> newNode = new TreeNode<>(values.get(medianInd));
+            this.addAsChild(newNode);
+            newNode.recursiveIns(values, start, (medianInd - 1));
+            newNode.recursiveIns(values, (medianInd + 1), end);
+        }
+    }
+
+    TreeNode<T> getSmallest(ArrayDeque<TreeNode<T>> path) {
+        if (rightChild == null) return this;
+        else {
+            path.push(this);
+            return rightChild.getSmallest(path);
+        }
+    }
 }

@@ -1,101 +1,192 @@
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.*;
 
-public class ScapegoatTree<T extends Comparable> {
+public class ScapegoatTree<T extends Comparable> implements Set{
     private TreeNode<T> root;
     private double alpha; //balance coefficient
     private int size;
-    private int maxSize; //TODO rename
-
+    private int lastRebuildSize;
+    private Class classOfT;
 
     //constructor and getter for root
-    public ScapegoatTree(T value, double alpha) { //TODO element removal
+
+    public ScapegoatTree(T value, double alpha) {
         if (alpha >= 0.5 && alpha < 1) this.alpha = alpha;
         else throw new IllegalArgumentException("alpha should be in [0.5 ; 1) range. Current alpha: " + alpha);
         this.root = new TreeNode<>(value);
         size = 1;
-        maxSize = 1;
+        lastRebuildSize = 1;
+        classOfT = value.getClass();
     }
 
     public TreeNode<T> getRoot() { return root; }
 
-    public boolean contains(T value) { return search(value, root) != null; }
+    public int size() { return size; }
 
-    private TreeNode<T> search(T value, TreeNode<T> currNode) {
-        int compareVal = value.compareTo(currNode.getValue());
-        //System.out.println("current search position is " + currNode.getValue());
-        if (compareVal == 0) return currNode;
-        else if (compareVal < 0) {
-            if (currNode.getLeftChild() == null) return null;
-            //System.out.println("searching at the left of " + currNode.getValue());
-            return search(value, currNode.getLeftChild());
-        }
-        else {
-            if ((currNode.getRightChild() == null)) return null;
-            //System.out.println("searching at the right of " + currNode.getValue());
-            return search(value, currNode.getRightChild());
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScapegoatTree<?> that = (ScapegoatTree<?>) o;
+        return Double.compare(that.alpha, alpha) == 0 &&
+                size == that.size &&
+                Objects.equals(root, that.root) &&
+                Objects.equals(classOfT, that.classOfT);
     }
 
-    public int size() { return root.getWeight(); }
+    @Override
+    public int hashCode() { return Objects.hash(root, size, classOfT); }
 
-    //getting the subtree as the sorted ArrayList<T>
+    @Override
+    public boolean isEmpty() { return root == null; }
 
-    //TODO transfer to node class, ArrayList name, public method
-    void getSubtreeAsList(boolean includeCurr, TreeNode<T> node, ArrayList<T> result) {
-        //smaller values
-        if (node.getLeftChild() != null) getSubtreeAsList(true, node.getLeftChild(), result);
-        //this value
-        if (includeCurr) result.add(node.getValue());
-        //greater values
-        if (node.getRightChild() != null) getSubtreeAsList(true, node.getRightChild(), result);
+    @Override
+    public boolean contains(Object o) {
+        if (o == null || root == null) return false;
+        if (!classOfT.equals(o.getClass())) return false;
+        T searchValue = (T) o;
+        return root.search(searchValue) != null;
     }
 
-    //node insertion - if the inserted element breaks the balance of the tree - look for the scapegoat and rebuild it
-    private void recursiveIns(ArrayList<T> values, int start, int end, TreeNode<T> currNode) {
-        if (start < 0 || end > values.size() - 1 || start > end) return;
-        if (start == end) {
-            //recursion exit
-            int compareVal = values.get(start).compareTo(currNode.getValue());
-            TreeNode<T> newNode = new TreeNode<>(values.get(start));
 
-            if (compareVal <= 0) {
-                currNode.setLeftChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
-            } else {
-                currNode.setRightChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
+
+    @Override
+    public Iterator iterator() {
+        return new Iterator() {
+            ArrayDeque<TreeNode<T>> currQueue = new ArrayDeque<>();
+            TreeNode<T> currNode;
+            T currValue;
+
+            @Override
+            public boolean hasNext() {
+                if (root == null) return false;
+                if (currNode == null) return true;
+                return !currQueue.isEmpty();
+            }
+
+            @Override
+            public Object next() {
+                if (currNode == null) {
+                    currNode = root;
+                    currValue = currNode.getValue();
+                    if (currNode.getRightChild() != null) currQueue.add(currNode.getRightChild());
+                    if (currNode.getLeftChild() != null) currQueue.add(currNode.getLeftChild());
+                    return currValue;
+                }
+                currNode = currQueue.pop();
+                currValue = currNode.getValue();
+                if (currNode.getRightChild() != null) currQueue.add(currNode.getRightChild());
+                if (currNode.getLeftChild() != null) currQueue.add(currNode.getLeftChild());
+                return currValue;
+            }
+        };
+
+    }
+
+    @Override
+    public Object[] toArray() {
+        ArrayList<T> values = new ArrayList<>();
+        root.getSubtreeAsList(true, values);
+        return values.toArray();
+    }
+
+    @Override
+    public boolean add(Object o) {
+        if (o == null) return false;
+        if (!classOfT.equals(o.getClass())) return false;
+        if (this.contains(o)) return false;
+
+        T addValue = (T) o;
+        ArrayDeque<TreeNode<T>> path = new ArrayDeque<>();
+        root.addAsChild(new TreeNode<>(addValue), path);
+        size++;
+        if (size > lastRebuildSize) lastRebuildSize = size;
+
+        while (!path.isEmpty()) {
+            TreeNode<T> node = path.pop();
+            double currAlpWeight = node.getWeight() * alpha;
+            double rightWeight = 0.0;
+            double leftWeight = 0.0;
+            if (node.getRightChild() != null) rightWeight = node.getRightChild().getWeight();
+            if (node.getLeftChild() != null) leftWeight = node.getLeftChild().getWeight();
+            if (rightWeight > currAlpWeight || leftWeight > currAlpWeight){
+                rebuild(true, node, path); //Scapegoat found - balance time!
+                break;
             }
         }
-        else {
-            int medianInd = (start + end)/2;
-            TreeNode<T> newNode = new TreeNode<>(values.get(medianInd));
-            addAsChild(newNode, currNode);
-            //System.out.println("calling recursive insertions: " + start + "-" + (medianInd -1) + " and " + (medianInd + 1) + "-" + end);
-            recursiveIns(values, start, (medianInd - 1), newNode);
-            recursiveIns(values, (medianInd + 1), end, newNode);
-        }
-    }
-    //TODO stack -> deque
-    private void findPath(TreeNode<T> node, TreeNode<T> currNode, Stack<TreeNode<T>> path) {
-        if (currNode == null) throw new NoSuchElementException("no node for " + node.getValue().toString());
-        int compareVal = node.getValue().compareTo(currNode.getValue());
-        path.push(currNode);
 
-        if (compareVal < 0 && currNode.getLeftChild() != null) {
-            findPath(node, currNode.getLeftChild(), path);
-        }
-        else if (compareVal > 0 && currNode.getRightChild() != null) {
-            findPath(node, currNode.getRightChild(), path);
-        }
+        return true;
     }
 
-    private void rebuild(boolean saveCurr, TreeNode<T> node, Stack<TreeNode<T>> path) {
+    @Override
+    public boolean remove(Object o) {
+        if (o == null) return false;
+        if (!classOfT.equals(o.getClass())) return false;
+        if (!this.contains(o)) return false;
+        T removeValue = (T) o;
+
+        TreeNode<T> removingNode = root.search(removeValue);
+        if (removingNode == root && this.size == 1) {
+            root = null;
+            return true;
+        }
+
+        ArrayDeque<TreeNode<T>> path = new ArrayDeque<>();
+        root.findPath(removingNode, path);
+        rebuild(false, removingNode, path);
+        size--;
+
+        if (size < lastRebuildSize * alpha) {
+            rebuild(true, root, new ArrayDeque<>());
+            lastRebuildSize = size;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean addAll(Collection c) {
+        boolean isSuccessful = true;
+        for (Object element : c) isSuccessful = this.add(element);
+        return isSuccessful;
+    }
+
+    @Override
+    public void clear() { root = null; }
+
+    @Override
+    public boolean removeAll(Collection c) {
+        boolean isSuccessful = true;
+        for (Object element : c) isSuccessful = this.remove(element);
+        return isSuccessful;
+    }
+
+    @Override
+    public boolean retainAll(Collection c) {
+        boolean isSuccessful = true;
+        for (Object element : this) if (!c.contains(element)) isSuccessful = this.remove(element);
+        return isSuccessful;
+    }
+
+    @Override
+    public boolean containsAll(Collection c) {
+        for (Object element : c) if (!this.contains(element)) return false;
+        return true;
+    }
+
+    @Override
+    public Object[] toArray(Object[] a) {
+        if (a.length > size) return this.toArray();
+        ArrayList<T> values = new ArrayList<>();
+        root.getSubtreeAsList(true, values);
+        a = values.toArray();
+        return a;
+    }
+
+    private void rebuild(boolean saveCurr, TreeNode<T> node, ArrayDeque<TreeNode<T>> path) {
         //System.out.println("rebuilding for scapegoat " + node.getValue());
         ArrayList<T> subtreeArr = new ArrayList<>();
 
-        getSubtreeAsList(saveCurr, node, subtreeArr);
+        node.getSubtreeAsList(saveCurr, subtreeArr);
         //System.out.println("subtree is ");
         //subtreeArr.forEach(System.out::println);
 
@@ -105,8 +196,8 @@ public class ScapegoatTree<T extends Comparable> {
             //when the scapegoat is a root, we can not get the parent node
             root = new TreeNode<>(subtreeArr.get(medianInd));
             //System.out.println("new root is " + root.getValue());
-            recursiveIns(subtreeArr, 0, medianInd - 1, root);
-            recursiveIns(subtreeArr, medianInd + 1, subtreeArr.size() - 1, root);
+            root.recursiveIns(subtreeArr, 0, medianInd - 1);
+            root.recursiveIns(subtreeArr, medianInd + 1, subtreeArr.size() - 1);
         }
         else {
             //parent node is the next node in the path we followed
@@ -123,87 +214,9 @@ public class ScapegoatTree<T extends Comparable> {
             if (newScapeGoat.getValue().compareTo(parentNode.getValue()) <= 0) parentNode.setLeftChild(newScapeGoat);
             else parentNode.setRightChild(newScapeGoat);
             //System.out.println("new scapegoat is " + newScapeGoat.getValue());
-            recursiveIns(subtreeArr, 0, (medianInd - 1), newScapeGoat);
-            recursiveIns(subtreeArr, (medianInd + 1), subtreeArr.size() - 1, newScapeGoat);
+            newScapeGoat.recursiveIns(subtreeArr, 0, (medianInd - 1));
+            newScapeGoat.recursiveIns(subtreeArr, (medianInd + 1), subtreeArr.size() - 1);
         }
     }
-
-    public void add(T value) {
-        Stack<TreeNode<T>> path = new Stack<>();
-        addAsChild(new TreeNode<>(value), root, path);
-        size++;
-        if (size > maxSize) maxSize = size;
-
-        while (!path.isEmpty()) {
-            TreeNode<T> node = path.pop();
-            double currAlpWeight = node.getWeight() * alpha;
-            double rightWeight = 0.0;
-            double leftWeight = 0.0;
-            if (node.getRightChild() != null) rightWeight = node.getRightChild().getWeight();
-            if (node.getLeftChild() != null) leftWeight = node.getLeftChild().getWeight();
-            if (rightWeight > currAlpWeight || leftWeight > currAlpWeight){
-                rebuild(true, node, path); //Scapegoat found - balance time!
-                break;
-            }
-        }
-    }
-
-    private void addAsChild(TreeNode<T> newNode, TreeNode<T> currNode) {
-        if (newNode.getValue().compareTo(currNode.getValue()) <= 0) {
-            if (currNode.getLeftChild() == null) {
-                currNode.setLeftChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
-            }
-            else addAsChild(newNode, currNode.getLeftChild());
-        }
-        else {
-            if (currNode.getRightChild() == null) {
-                currNode.setRightChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
-            }
-            else addAsChild(newNode, currNode.getRightChild());
-        }
-    }
-
-    private void addAsChild(TreeNode<T> newNode, TreeNode<T> currNode, Stack<TreeNode<T>> currPath) {
-        currPath.push(currNode);
-        if (newNode.getValue().compareTo(currNode.getValue()) <= 0) {
-            if (currNode.getLeftChild() == null) {
-                currNode.setLeftChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
-            }
-            else addAsChild(newNode, currNode.getLeftChild(), currPath);
-        }
-        else {
-            if (currNode.getRightChild() == null) {
-                currNode.setRightChild(newNode);
-                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
-            }
-            else addAsChild(newNode, currNode.getRightChild(), currPath);
-        }
-    }
-
-    //node removal - rebalance all the subtree, or even all the tree, if currSize < alpha * lastRebalanceSize
-    public void remove(T value) {
-        TreeNode<T> removingNode = search(value, root);
-
-        if (removingNode == null)
-            throw new NoSuchElementException("there is no such value in the tree: " + value.toString());
-        if (removingNode == root && this.size == 1)
-            throw new IllegalArgumentException("last element of tree can not be removed");
-        //System.out.println("removing " + removingNode.getValue());
-        Stack<TreeNode<T>> path = new Stack<>();
-        findPath(removingNode, root, path);
-        path.pop();
-        rebuild(false, removingNode, path);
-        size--;
-
-        if (size < maxSize * alpha) {
-            rebuild(true, root, new Stack<>());
-            maxSize = size;
-        }
-    }
-
-
 
 }
