@@ -11,10 +11,13 @@ public class TreeNode<T extends Comparable> {
     public TreeNode(T value) {
         this.value = value;
     }
+
     public TreeNode<T> getRightChild() { return rightChild; }
+
     public void setRightChild(TreeNode<T> rightChild) { this.rightChild = rightChild; }
 
     public TreeNode<T> getLeftChild() { return leftChild; }
+
     public void setLeftChild(TreeNode<T> leftChild) { this.leftChild = leftChild; }
 
     public T getValue() { return value; }
@@ -29,6 +32,7 @@ public class TreeNode<T extends Comparable> {
                 Objects.equals(leftChild, treeNode.leftChild) &&
                 Objects.equals(rightChild, treeNode.rightChild);
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(value, leftChild, rightChild);

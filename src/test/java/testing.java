@@ -138,4 +138,10 @@ public class testing {
         for (int i = 0; i < a.length; i++) assertEquals(a[i], objs[i]);
 
     }
+
+    @Test
+    public void GUItests() {
+        ScapegoatTree treeCover = new ScapegoatTree(0, 0.5);
+        for (int i = 0; i < 1000000; i++) treeCover.add(i);
+    }
 }

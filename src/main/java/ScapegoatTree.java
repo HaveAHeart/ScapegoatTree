@@ -1,10 +1,13 @@
+import javax.swing.*;
+import java.awt.*;
 import java.util.*;
+
+import static java.lang.Integer.max;
 
 public class ScapegoatTree<T extends Comparable> implements Set{
     private TreeNode<T> root;
     private double alpha; //balance coefficient
     private int size;
-    private int lastRebuildSize;
     private Class classOfT;
 
     //constructor and getter for root
@@ -14,11 +17,15 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         else throw new IllegalArgumentException("alpha should be in [0.5 ; 1) range. Current alpha: " + alpha);
         this.root = new TreeNode<>(value);
         size = 1;
-        lastRebuildSize = 1;
         classOfT = value.getClass();
     }
 
     public TreeNode<T> getRoot() { return root; }
+
+    public int getMaxHeight(TreeNode<T> node) {
+        if (node == null) return 0;
+        else return 1 + max(getMaxHeight(node.getLeftChild()), getMaxHeight(node.getRightChild()));
+    }
 
     public int size() { return size; }
 
@@ -96,10 +103,15 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         if (this.contains(o)) return false;
 
         T addValue = (T) o;
+        if (root == null) {
+            root = new TreeNode<>(addValue);
+            return true;
+        }
+
         ArrayDeque<TreeNode<T>> path = new ArrayDeque<>();
+
         root.addAsChild(new TreeNode<>(addValue), path);
         size++;
-        if (size > lastRebuildSize) lastRebuildSize = size;
 
         while (!path.isEmpty()) {
             TreeNode<T> node = path.pop();
@@ -135,10 +147,7 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         rebuild(false, removingNode, path);
         size--;
 
-        if (size < lastRebuildSize * alpha) {
-            rebuild(true, root, new ArrayDeque<>());
-            lastRebuildSize = size;
-        }
+        rebuild(true, root, new ArrayDeque<>());
 
         return true;
     }
