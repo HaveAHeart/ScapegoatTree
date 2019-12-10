@@ -35,12 +35,12 @@ public class MainWindow extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String command;
-        int a;
+        int input;
         if(e.getActionCommand().equals("add")) {
             command = JOptionPane.showInputDialog("Add an integer:");
             try{
-                a =Integer.parseInt(command);
-                tree.add(a);
+                input = Integer.parseInt(command);
+                tree.add(input);
                 locationCalculating = true;
                 repaint();
             }
@@ -51,13 +51,13 @@ public class MainWindow extends JPanel implements ActionListener {
         else if (e.getActionCommand().equals("search")) {
             command = JOptionPane.showInputDialog("Searching for integer in tree:");
             try{
-                int input = Integer.parseInt(command);
+                input = Integer.parseInt(command);
                 boolean res = tree.contains(input);
                 if (res) JOptionPane.showMessageDialog(frame, "the " + input + " was found, yay!");
                 else JOptionPane.showMessageDialog(frame, "the " + input + " was not found :c");
 
-                locationCalculating = true;
-                repaint();
+                locationCalculating = false;
+                //repaint();
             }
             catch(NumberFormatException ex){
                 JOptionPane.showMessageDialog(frame, "Please, write a proper integer");
@@ -66,8 +66,8 @@ public class MainWindow extends JPanel implements ActionListener {
         else if (e.getActionCommand().equals("remove")) {
             command = JOptionPane.showInputDialog("Remove an integer:");
             try{
-                a =Integer.parseInt(command);
-                tree.remove(a);
+                input = Integer.parseInt(command);
+                tree.remove(input);
                 locationCalculating = true;
                 repaint();
             }
@@ -117,7 +117,7 @@ public class MainWindow extends JPanel implements ActionListener {
         TreeNode root = tree.getRoot();
         if (root != null) {
             calculateSubtreeSize(root);
-            calculateLocation(root, Integer.MAX_VALUE, Integer.MAX_VALUE, 0);//?
+            calculateLocation(root, Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
         }
     }
 
@@ -171,7 +171,7 @@ public class MainWindow extends JPanel implements ActionListener {
 
         f.getContentPane().add(contPanel);
         f.setBounds(75, 75, 1200, 1200);
-        // create and add an event handler for window closing event
+        //should we set a message if the user wants to quit?..
         f.addWindowListener(
                 new WindowAdapter(){
                     public void windowClosing(WindowEvent event){ System.exit(0); }

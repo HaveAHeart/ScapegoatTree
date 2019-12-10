@@ -54,8 +54,6 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         return root.search(searchValue) != null;
     }
 
-
-
     @Override
     public Iterator iterator() {
         return new Iterator() {
