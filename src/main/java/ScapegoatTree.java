@@ -1,5 +1,3 @@
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.*;
 
 public class ScapegoatTree<T extends Comparable> implements Set{
@@ -237,5 +235,4 @@ public class ScapegoatTree<T extends Comparable> implements Set{
             newScapeGoat.recursiveIns(subtreeArr, (medianInd + 1), subtreeArr.size() - 1);
         }
     }
-
 }
