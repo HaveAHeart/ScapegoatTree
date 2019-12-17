@@ -2,9 +2,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class testing {
     @Test
@@ -23,6 +21,7 @@ public class testing {
         assertEquals(1, node11.getWeight());
         assertEquals(3, node1.getWeight());
         assertEquals(node12.getValue(), node22.getValue());
+        assertEquals(node1.hashCode(), node2.hashCode());
     }
 
     @Test
@@ -38,12 +37,9 @@ public class testing {
 
     @Test
     public void scapegoatTreeSimpleTests2() {
-        ScapegoatTree<Integer> tree2 = new ScapegoatTree<>(5, 0.5);
-        tree2.add(6);
-        tree2.add(3);
-        tree2.add(7);
-        tree2.add(1);
-        tree2.add(2);//catching the scapegoat+rebalance here
+        ScapegoatTree<Integer> tree2 = new ScapegoatTree<Integer>(5, 0.5){{
+            add(6); add(3); add(7); add(1); add(2); //catching the scapegoat+rebalance here
+        }};
         assertEquals(6, tree2.size());
         assertFalse(tree2.contains(-1));
         assertTrue(tree2.contains(2));
@@ -58,8 +54,9 @@ public class testing {
         node21.setLeftChild(node211);
         node21.setRightChild(node212);
         node22.setRightChild(node222);
-        ArrayList<Integer> result = new ArrayList<>();
-        result.add(1); result.add(2); result.add(3); result.add(5); result.add(6); result.add(7);
+        ArrayList<Integer> result = new ArrayList<Integer>(){{
+            add(1); add(2); add(3); add(5); add(6); add(7);
+        }};
         ArrayList<Integer> sortedTreeArr = new ArrayList<>();
         tree2.getRoot().getSubtreeAsList(true, sortedTreeArr);
         assertEquals(tree2.getRoot(), node2);
@@ -77,9 +74,9 @@ public class testing {
 
     @Test
     public void scapegoatTreeSimpleTests3() {
-        ScapegoatTree<Integer> tree4 = new ScapegoatTree<>(1, 0.5);
-        tree4.add(2);
-        tree4.remove(1);
+        ScapegoatTree<Integer> tree4 = new ScapegoatTree<Integer>(1, 0.5){{
+            add(2); remove(1);
+        }};
         TreeNode<Integer> testNode = new TreeNode<>(2);
         assertEquals(testNode, tree4.getRoot());
     }
@@ -87,31 +84,31 @@ public class testing {
     @Test
     public void scapegoatTreeTest() {
         ScapegoatTree<Integer> bigTree = new ScapegoatTree<>(0, 0.5);
-        for (int i = 1; i < 50000; i++) {
-            //System.out.println("added " + i);
+        for (int i = 1; i < 100000; i++) {
+            System.out.println("added " + i);
             bigTree.add(i);
         }
-        for (int i = 0; i < 50000; i++) bigTree.contains(i); //System.out.println(bigTree.contains(i) + ", " + i);
-        for (int i = 1; i < 50000; i++) {
-            //System.out.println("removed " + i);
-            bigTree.remove(i);
+        for (int i = 0; i < 100000; i++) System.out.println(bigTree.contains(i) + ", " + i);
+        for (int i = 1; i < 100000; i++) {
+            System.out.println("removed " + i);
+            assertTrue(bigTree.remove(i));
         }
-        /*assertEquals(new TreeNode<>(0).getValue(), bigTree.getRoot().getValue());
+        assertEquals(new TreeNode<>(0).getValue(), bigTree.getRoot().getValue());
         ArrayList<Integer> forBigTree = new ArrayList<>();
         bigTree.getRoot().getSubtreeAsList(true, forBigTree);
-        ArrayList<Integer> res = new ArrayList<>();
-        res.add(0);
+        ArrayList<Integer> res = new ArrayList<Integer>(){{ add(0); }};
         assertEquals(res, forBigTree);
         assertEquals(new TreeNode<>(0), bigTree.getRoot());
-        //forBigTree.forEach(System.out::println); */
+        //forBigTree.forEach(System.out::println);
     }
 
     @Test
     public void scapegoatSetImplementationsTest() {
         //add+remove were already tested in previous tests
         ScapegoatTree<Integer> tree = new ScapegoatTree<>(1, 0.5);
-        ArrayList<Integer> addAL = new ArrayList<>();
-        addAL.add(2); addAL.add(3); addAL.add(4); addAL.add(5); addAL.add(6);
+        ArrayList addAL = new ArrayList<Integer>(){{
+            add(2); add(3); add(4); add(5); add(6);
+        }};
         tree.addAll(addAL);
         for (Object element : tree) System.out.println(element.toString()); //integers from 1 to 6
         tree.removeAll(addAL);
@@ -140,8 +137,15 @@ public class testing {
     }
 
     @Test
-    public void GUItests() {
-        ScapegoatTree treeCover = new ScapegoatTree(0, 0.5);
-        for (int i = 0; i < 1000000; i++) treeCover.add(i);
+    public void improvisedBenchmarkTest() {
+        ScapegoatTree treeCover = new ScapegoatTree(0.5) {{
+            for (int i = 0; i < 100000; i++) add(i);
+        }};
+        for (Object val : treeCover) System.out.println(val.toString());
+    }
+
+    @Test
+    public void GUITest() {
+        MainWindow.main(new String[0]);
     }
 }

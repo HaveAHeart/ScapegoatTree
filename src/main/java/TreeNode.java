@@ -85,20 +85,7 @@ public class TreeNode<T extends Comparable> {
     }
 
     void addAsChild(TreeNode<T> newNode) {
-        if (newNode.getValue().compareTo(value) < 0) {
-            if (leftChild == null) {
-                leftChild = newNode;
-                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
-            }
-            else leftChild.addAsChild(newNode);
-        }
-        else {
-            if (rightChild == null) {
-                rightChild = newNode;
-                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
-            }
-            else rightChild.addAsChild(newNode);
-        }
+        addAsChild(newNode, new ArrayDeque<>());
     }
 
     void addAsChild(TreeNode<T> newNode, ArrayDeque<TreeNode<T>> currPath) {
@@ -131,14 +118,6 @@ public class TreeNode<T extends Comparable> {
             this.addAsChild(newNode);
             newNode.recursiveIns(values, start, (medianInd - 1));
             newNode.recursiveIns(values, (medianInd + 1), end);
-        }
-    }
-
-    TreeNode<T> getSmallest(ArrayDeque<TreeNode<T>> path) {
-        if (rightChild == null) return this;
-        else {
-            path.push(this);
-            return rightChild.getSmallest(path);
         }
     }
 }

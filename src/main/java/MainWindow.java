@@ -35,12 +35,12 @@ public class MainWindow extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String command;
-        int input;
+        int a;
         if(e.getActionCommand().equals("add")) {
             command = JOptionPane.showInputDialog("Add an integer:");
             try{
-                input = Integer.parseInt(command);
-                tree.add(input);
+                a =Integer.parseInt(command);
+                tree.add(a);
                 locationCalculating = true;
                 repaint();
             }
@@ -51,13 +51,13 @@ public class MainWindow extends JPanel implements ActionListener {
         else if (e.getActionCommand().equals("search")) {
             command = JOptionPane.showInputDialog("Searching for integer in tree:");
             try{
-                input = Integer.parseInt(command);
+                int input = Integer.parseInt(command);
                 boolean res = tree.contains(input);
                 if (res) JOptionPane.showMessageDialog(frame, "the " + input + " was found, yay!");
                 else JOptionPane.showMessageDialog(frame, "the " + input + " was not found :c");
 
-                locationCalculating = false;
-                //repaint();
+                locationCalculating = true;
+                repaint();
             }
             catch(NumberFormatException ex){
                 JOptionPane.showMessageDialog(frame, "Please, write a proper integer");
@@ -66,8 +66,8 @@ public class MainWindow extends JPanel implements ActionListener {
         else if (e.getActionCommand().equals("remove")) {
             command = JOptionPane.showInputDialog("Remove an integer:");
             try{
-                input = Integer.parseInt(command);
-                tree.remove(input);
+                a =Integer.parseInt(command);
+                tree.remove(a);
                 locationCalculating = true;
                 repaint();
             }
@@ -145,11 +145,16 @@ public class MainWindow extends JPanel implements ActionListener {
         fm = null;
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(7000, 1000);
+    }
+
     public static void main(String[] args) {
         ScapegoatTree tree = new ScapegoatTree(0, 0.5);
         tree.remove(0);
         Random rand = new Random();
-        for (int i = 0; i < 1000; i++) tree.add(rand.nextInt(25));
+        for (int i = 0; i < 1000; i++) tree.add(rand.nextInt(250));
         JFrame f = new JFrame("Scapegoat Tree");
         JOptionPane.showMessageDialog(frame, "Welcome," +
                 "the interface is quite dumb: press the button for the required operation:" +
@@ -159,19 +164,19 @@ public class MainWindow extends JPanel implements ActionListener {
 
         JPanel contPanel = new MainWindow(tree);
 
-        //contPanel.setSize(1000, 1000);
-        //contPanel.setVisible(true);
+        contPanel.setSize(1000, 1000);
+        contPanel.setVisible(true);
 
-        //JScrollPane scrollPane = new JScrollPane(contPanel);
-        //scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        //scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        //scrollPane.setSize(1100, 1100);
-        //scrollPane.setVisible(true);
+        JScrollPane scrollPane = new JScrollPane(contPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setSize(1100, 1100);
+        scrollPane.setVisible(true);
         //scrollPane.add(contPanel);
 
-        f.getContentPane().add(contPanel);
-        f.setBounds(75, 75, 1200, 1200);
-        //should we set a message if the user wants to quit?..
+        f.getContentPane().add(scrollPane);
+        f.setBounds(75, 75, 1000, 1000);
+        // create and add an event handler for window closing event
         f.addWindowListener(
                 new WindowAdapter(){
                     public void windowClosing(WindowEvent event){ System.exit(0); }

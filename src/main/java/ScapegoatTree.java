@@ -1,15 +1,13 @@
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import static java.lang.Integer.max;
+import java.util.*;
 
 public class ScapegoatTree<T extends Comparable> implements Set{
     private TreeNode<T> root;
     private double alpha; //balance coefficient
     private int size;
     private Class classOfT;
-
+    private int lastRebuildSize;
     //constructor and getter for root
 
     public ScapegoatTree(T value, double alpha) {
@@ -18,14 +16,19 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         this.root = new TreeNode<>(value);
         size = 1;
         classOfT = value.getClass();
+        lastRebuildSize = 1;
+    }
+
+    public ScapegoatTree(double alpha) {
+        if (alpha >= 0.5 && alpha < 1) this.alpha = alpha;
+        else throw new IllegalArgumentException("alpha should be in [0.5 ; 1) range. Current alpha: " + alpha);
+        this.root = null;
+        size = 0;
+        classOfT = null;
+        lastRebuildSize = 0;
     }
 
     public TreeNode<T> getRoot() { return root; }
-
-    public int getMaxHeight(TreeNode<T> node) {
-        if (node == null) return 0;
-        else return 1 + max(getMaxHeight(node.getLeftChild()), getMaxHeight(node.getRightChild()));
-    }
 
     public int size() { return size; }
 
@@ -54,37 +57,38 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         return root.search(searchValue) != null;
     }
 
+    public class ScapegoatTreeIterator implements Iterator {
+        Deque<TreeNode> queue;
+
+        public ScapegoatTreeIterator(TreeNode root) {
+            queue = new ArrayDeque<>();
+            while (root != null) {
+                queue.addLast(root);
+                root = root.getLeftChild();
+            }
+        }
+
+        public boolean hasNext() {
+            return !queue.isEmpty();
+        }
+
+        public T next() {
+            TreeNode<T> node = queue.pollLast();
+            T result = node.getValue();
+            if (node.getRightChild() != null) {
+                node = node.getRightChild();
+                while (node != null) {
+                    queue.addLast(node);
+                    node = node.getLeftChild();
+                }
+            }
+            return result;
+        }
+    }
+
     @Override
     public Iterator iterator() {
-        return new Iterator() {
-            ArrayDeque<TreeNode<T>> currQueue = new ArrayDeque<>();
-            TreeNode<T> currNode;
-            T currValue;
-
-            @Override
-            public boolean hasNext() {
-                if (root == null) return false;
-                if (currNode == null) return true;
-                return !currQueue.isEmpty();
-            }
-
-            @Override
-            public Object next() {
-                if (currNode == null) {
-                    currNode = root;
-                    currValue = currNode.getValue();
-                    if (currNode.getRightChild() != null) currQueue.add(currNode.getRightChild());
-                    if (currNode.getLeftChild() != null) currQueue.add(currNode.getLeftChild());
-                    return currValue;
-                }
-                currNode = currQueue.pop();
-                currValue = currNode.getValue();
-                if (currNode.getRightChild() != null) currQueue.add(currNode.getRightChild());
-                if (currNode.getLeftChild() != null) currQueue.add(currNode.getLeftChild());
-                return currValue;
-            }
-        };
-
+        return new ScapegoatTreeIterator(root);
     }
 
     @Override
@@ -97,6 +101,7 @@ public class ScapegoatTree<T extends Comparable> implements Set{
     @Override
     public boolean add(Object o) {
         if (o == null) return false;
+        if (classOfT == null) classOfT = o.getClass();
         if (!classOfT.equals(o.getClass())) return false;
         if (this.contains(o)) return false;
 
@@ -130,6 +135,7 @@ public class ScapegoatTree<T extends Comparable> implements Set{
     @Override
     public boolean remove(Object o) {
         if (o == null) return false;
+        if (classOfT == null) return false;
         if (!classOfT.equals(o.getClass())) return false;
         if (!this.contains(o)) return false;
         T removeValue = (T) o;
@@ -145,7 +151,11 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         rebuild(false, removingNode, path);
         size--;
 
-        rebuild(true, root, new ArrayDeque<>());
+        if (size * alpha < lastRebuildSize) {
+            rebuild(true, root, new ArrayDeque<TreeNode<T>>(){{add(root);}});
+            lastRebuildSize = size;
+        }
+
 
         return true;
     }
@@ -182,10 +192,12 @@ public class ScapegoatTree<T extends Comparable> implements Set{
 
     @Override
     public Object[] toArray(Object[] a) {
+        int counter = 0;
         if (a.length > size) return this.toArray();
-        ArrayList<T> values = new ArrayList<>();
-        root.getSubtreeAsList(true, values);
-        a = values.toArray();
+        for (Object val : this) {
+            a[counter] = val;
+            counter++;
+        }
         return a;
     }
 
