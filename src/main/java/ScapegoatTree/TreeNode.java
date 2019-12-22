@@ -1,3 +1,5 @@
+package ScapegoatTree;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -85,7 +87,7 @@ public class TreeNode<T extends Comparable> {
     }
 
     void addAsChild(TreeNode<T> newNode) {
-        addAsChild(newNode, new ArrayDeque<>());
+        addAsChild(newNode, new ArrayDeque<TreeNode<T>>());
     }
 
     void addAsChild(TreeNode<T> newNode, ArrayDeque<TreeNode<T>> currPath) {
@@ -93,13 +95,11 @@ public class TreeNode<T extends Comparable> {
         if (newNode.getValue().compareTo(value) < 0) {
             currPath.push(this);
             if (leftChild == null) leftChild = newNode;
-                //System.out.println("value " + newNode.getValue() + " added as left child for " + currNode.getValue());
             else leftChild.addAsChild(newNode, currPath);
         }
         else {
             currPath.push(this);
             if (rightChild == null) rightChild = newNode;
-                //System.out.println("value " + newNode.getValue() + " added as right child for " + currNode.getValue());
             else rightChild.addAsChild(newNode, currPath);
         }
     }

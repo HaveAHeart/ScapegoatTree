@@ -1,10 +1,12 @@
+package ScapegoatTree;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
 
 import static org.junit.Assert.*;
 
-public class testing {
+public class Testing {
     @Test
     public void testingTreeNode() {
         TreeNode<Integer> node1 = new TreeNode<>(2);
@@ -61,12 +63,11 @@ public class testing {
         tree2.getRoot().getSubtreeAsList(true, sortedTreeArr);
         assertEquals(tree2.getRoot(), node2);
         assertEquals(result, sortedTreeArr);
-
+        //purely for myself
         tree2.remove(5);
         tree2.remove(2);
         tree2.remove(1);
         tree2.remove(6);
-
         ArrayList<Integer> sortedTreeArr3 = new ArrayList<>();
         tree2.getRoot().getSubtreeAsList(true, sortedTreeArr3);
         sortedTreeArr3.forEach(System.out::println); //3, 7
@@ -99,7 +100,6 @@ public class testing {
         ArrayList<Integer> res = new ArrayList<Integer>(){{ add(0); }};
         assertEquals(res, forBigTree);
         assertEquals(new TreeNode<>(0), bigTree.getRoot());
-        //forBigTree.forEach(System.out::println);
     }
 
     @Test
@@ -131,7 +131,6 @@ public class testing {
         assertTrue(tree.containsAll(addAL));
         Object[] a = {2};
         Object[] objs = tree.toArray();
-        //for (Object obj : objs) System.out.println(obj.toString());
         for (int i = 0; i < a.length; i++) assertEquals(a[i], objs[i]);
 
     }
@@ -144,8 +143,12 @@ public class testing {
         for (Object val : treeCover) System.out.println(val.toString());
     }
 
+
+
+    /*
     @Test
     public void GUITest() {
         MainWindow.main(new String[0]);
     }
+    */
 }

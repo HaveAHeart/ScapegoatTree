@@ -1,3 +1,5 @@
+package ScapegoatTree;
+
 import java.util.*;
 
 public class ScapegoatTree<T extends Comparable> implements Set{
@@ -6,6 +8,7 @@ public class ScapegoatTree<T extends Comparable> implements Set{
     private int size;
     private Class classOfT;
     private int lastRebuildSize;
+
     //constructor and getter for root
 
     public ScapegoatTree(T value, double alpha) {
@@ -102,18 +105,14 @@ public class ScapegoatTree<T extends Comparable> implements Set{
         if (classOfT == null) classOfT = o.getClass();
         if (!classOfT.equals(o.getClass())) return false;
         if (this.contains(o)) return false;
-
         T addValue = (T) o;
         if (root == null) {
             root = new TreeNode<>(addValue);
             return true;
         }
-
         ArrayDeque<TreeNode<T>> path = new ArrayDeque<>();
-
         root.addAsChild(new TreeNode<>(addValue), path);
         size++;
-
         while (!path.isEmpty()) {
             TreeNode<T> node = path.pop();
             double currAlpWeight = node.getWeight() * alpha;
@@ -126,7 +125,6 @@ public class ScapegoatTree<T extends Comparable> implements Set{
                 break;
             }
         }
-
         return true;
     }
 
@@ -153,7 +151,6 @@ public class ScapegoatTree<T extends Comparable> implements Set{
             rebuild(true, root, new ArrayDeque<TreeNode<T>>(){{add(root);}});
             lastRebuildSize = size;
         }
-
 
         return true;
     }
@@ -200,37 +197,34 @@ public class ScapegoatTree<T extends Comparable> implements Set{
     }
 
     private void rebuild(boolean saveCurr, TreeNode<T> node, ArrayDeque<TreeNode<T>> path) {
-        //System.out.println("rebuilding for scapegoat " + node.getValue());
         ArrayList<T> subtreeArr = new ArrayList<>();
 
         node.getSubtreeAsList(saveCurr, subtreeArr);
-        //System.out.println("subtree is ");
-        //subtreeArr.forEach(System.out::println);
 
         int medianInd = (subtreeArr.size() - 1)/2;
 
         if (node == root) {
             //when the scapegoat is a root, we can not get the parent node
             root = new TreeNode<>(subtreeArr.get(medianInd));
-            //System.out.println("new root is " + root.getValue());
             root.recursiveIns(subtreeArr, 0, medianInd - 1);
             root.recursiveIns(subtreeArr, medianInd + 1, subtreeArr.size() - 1);
         }
         else {
             //parent node is the next node in the path we followed
             TreeNode<T> parentNode = path.pop();
-            //System.out.println("parent node is " + parentNode.getValue());
+
             //removal part - if we need to remove an element with no children
             if (subtreeArr.size() == 0 && !saveCurr) {
                 if (node.getValue().compareTo(parentNode.getValue()) <= 0) parentNode.setLeftChild(null);
                 else parentNode.setRightChild(null);
                 return;
             }
-            //
+            //returning the rebuilt subtree on its place
             TreeNode<T> newScapeGoat = new TreeNode<>(subtreeArr.get(medianInd));
-            if (newScapeGoat.getValue().compareTo(parentNode.getValue()) <= 0) parentNode.setLeftChild(newScapeGoat);
-            else parentNode.setRightChild(newScapeGoat);
-            //System.out.println("new scapegoat is " + newScapeGoat.getValue());
+            if (newScapeGoat.getValue().compareTo(parentNode.getValue()) <= 0)
+                parentNode.setLeftChild(newScapeGoat);
+            else
+                parentNode.setRightChild(newScapeGoat);
             newScapeGoat.recursiveIns(subtreeArr, 0, (medianInd - 1));
             newScapeGoat.recursiveIns(subtreeArr, (medianInd + 1), subtreeArr.size() - 1);
         }

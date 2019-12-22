@@ -1,3 +1,5 @@
+package ScapegoatTree;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -18,7 +20,7 @@ public class MainWindow extends JPanel implements ActionListener {
     private int vertSpace = 5;
     private int horSpace = 25;
     Dimension empty = new Dimension(0, 0);
-    FontMetrics fm = null; //useful thing, allows us to calculate the width of the string
+    FontMetrics fm = null;
 
     public MainWindow(ScapegoatTree inTree) {
         this.tree = inTree;
