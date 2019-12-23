@@ -156,7 +156,7 @@ public class MainWindow extends JPanel implements ActionListener {
         ScapegoatTree tree = new ScapegoatTree(0, 0.5);
         tree.remove(0);
         Random rand = new Random();
-        for (int i = 0; i < 1000; i++) tree.add(rand.nextInt(250));
+        for (int i = 0; i < 25; i++) tree.add(rand.nextInt(250));
         JFrame f = new JFrame("Scapegoat Tree");
         JOptionPane.showMessageDialog(frame, "Welcome," +
                 "the interface is quite dumb: press the button for the required operation:" +
